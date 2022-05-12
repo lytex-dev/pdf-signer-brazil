@@ -76,28 +76,23 @@ const getPrivateKey = (keyBags: forge.pkcs12.Bag[]): forge.pki.PrivateKey => {
   return privateKey
 }
 
-const getCertificate = (
-  p7: forge.pkcs7.PkcsSignedData,
-  certBags: forge.pkcs12.Bag[],
-  privateKey: forge.pki.PrivateKey,
-): forge.pki.Certificate => {
-  let certificate: forge.pki.Certificate | undefined
-
-  Object.keys(certBags).forEach((value: string, index: number, array: string[]) => {
-    const publicKey: forge.pki.PublicKey = certBags[index]?.cert?.publicKey as forge.pki.PublicKey
-    const rawCertificate: forge.pki.Certificate = certBags[index].cert as forge.pki.Certificate
-
-    p7.addCertificate(rawCertificate)
-
-    certificate = getValidatedCertificate(privateKey, publicKey, rawCertificate)
-  })
-
-  if (!certificate) {
-    throw new Error('Failed to find a certificate that matches the private key.')
-  }
-
-  return certificate
-}
+const getCertificate = (p7, certBags, privateKey) => {
+    let certificate;
+    Object.keys(certBags).forEach((value, index, array) => {
+        var _a, _b;
+        const publicKey = (_b = (_a = certBags[index]) === null || _a === void 0 ? void 0 : _a.cert) === null || _b === void 0 ? void 0 : _b.publicKey;
+        const rawCertificate = certBags[index].cert;
+        p7.addCertificate(rawCertificate);
+        
+        //SOH JOGA AQUI SE AINDA NAO ACHOU, PRA EVITAR JOGAR UNDEFINED POR CIMA DE UM Q ACHOU
+if(!certificate)
+            certificate = getValidatedCertificate(privateKey, publicKey, rawCertificate);
+    });
+    if (!certificate) {
+        throw new Error('Failed to find a certificate that matches the private key.');
+    }
+    return certificate;
+};
 
 const getRawSignature = (p7: forge.pkcs7.PkcsSignedData, placeholderLength: number): string => {
   const rawSignature = forge.asn1.toDer(p7.toAsn1()).getBytes()
